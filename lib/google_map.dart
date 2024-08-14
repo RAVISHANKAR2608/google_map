@@ -11,47 +11,108 @@ class MapSample extends StatefulWidget {
   State<MapSample> createState() => _MapSampleState();
 }
 
-class _MapSampleState extends State<MapSample> {
+class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
   final TextEditingController _searchController = TextEditingController();
-  double latValue = 11.3753926;
-  double longValue = 77.8938889;
+  double latValue = 11.380333491395136;
+  double longValue = 77.89550084620714;
+  bool isMapMoving = false;
+  String subLocality = "";
+  String locality = "";
+
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    _initializeAnimation();
   }
 
-  Future<void> _onMapTap(LatLng latLng) async {
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _initializeAnimation() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: false);
+
+    _animation =
+        Tween<double>(begin: 0.0, end: 1.5).animate(_animationController);
+
+    _colorAnimation = ColorTween(
+      begin: Colors.blue.withOpacity(1.0),
+      end: Colors.blue.withOpacity(0.1),
+    ).animate(_animationController);
+  }
+
+  void _startAnimation() {
+    if (_animationController.isAnimating) {
+      _animationController.reset();
+    }
+    _animationController.forward();
+  }
+
+  Future<void> _onCameraMove(CameraPosition position) async {
     setState(() {
-      latValue = latLng.latitude;
-      longValue = latLng.longitude;
+      isMapMoving = true;
+      latValue = position.target.latitude;
+      longValue = position.target.longitude;
     });
-    print("Co-ordinates : $latValue, $longValue");
+
+    // Stop and restart the animation when the map is moving
+    if (_animationController.isAnimating) {
+      _animationController.stop();
+    }
+  }
+
+  Future<void> _onCameraIdle() async {
+    setState(() {
+      isMapMoving = false;
+    });
+
+    // Restart the animation from the beginning if the widget is still mounted
+    if (mounted) {
+      _startAnimation();
+      _initializeAnimation();
+    }
 
     List<Placemark> placemarks =
         await placemarkFromCoordinates(latValue, longValue);
-    print("Placemarks : $placemarks");
+    // print("Placemarks: $placemarks");
     Placemark place = placemarks[0];
 
-    String address =
-        "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
-    print("Address: $address");
+    setState(() {
+      locality = place.locality ?? '';
+      subLocality = place.subLocality ?? '';
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Address: $address")),
-    );
+    // String address =
+    //     "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+    // print("Address: $address");
+
+    // if (mounted) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text("Address: $address")),
+    //   );
+    // }
   }
 
-    Future<void> _searchPlaces(String query) async {
+  Future<void> _searchPlaces(String query) async {
     List<Location> locations = await locationFromAddress(query);
 
     if (locations.isNotEmpty) {
       Location location = locations.first;
       setState(() {
-        latValue = location.latitude!;
-        longValue = location.longitude!;
+        latValue = location.latitude;
+        longValue = location.longitude;
       });
 
       final GoogleMapController controller = await _controller.future;
@@ -69,67 +130,59 @@ class _MapSampleState extends State<MapSample> {
     zoom: 14.4746,
   );
 
-  Marker _kGooglePlexMarker() {
-    return Marker(
-      markerId: const MarkerId('_kGooglePlexMarker'),
-      infoWindow: const InfoWindow(title: 'Ravi'),
-      icon: BitmapDescriptor.defaultMarker,
-      position: LatLng(latValue, longValue),
-    );
-  }
-
-  Circle _kGooglePlexCircle() {
-    return Circle(
-      circleId: const CircleId('_kGooglePlexCircle'),
-      center: LatLng(latValue, longValue), // Center of the circle
-      radius: 1000, // Radius in meters
-      strokeWidth: 2, // Width of the circle's outline
-      strokeColor: Colors.blue, // Color of the circle's outline
-      fillColor: Colors.blue
-          .withOpacity(0.5), // Fill color of the circle with transparency
-    );
-  }
-
-  static final Marker _klakeMarker = Marker(
-    markerId: const MarkerId('_klakeMarker'),
-    infoWindow: const InfoWindow(title: 'PeriyaKottapalayam'),
-    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-    position: const LatLng(11.4186308, 77.9427329),
-  );
-
-  // static const Polygon _kPolygon = Polygon(
-  //   polygonId: PolygonId('_kPolygon'),
-  //   points: [
-  //     LatLng(11.4186308, 77.9427329),
-  //     LatLng(11.380008, 77.8953203),
-  //     LatLng(30.3800200, 77.8953305),
-  //     LatLng(12.380300, 77.8953403),
-  //   ],
-  //   strokeWidth: 5,
-  //   strokeColor: Colors.pink,
-  //   fillColor: Colors.yellow,
-  // );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Google Maps'),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+          GoogleMap(
+            mapType: MapType.hybrid,
+            initialCameraPosition: _kGooglePlex,
+            onCameraMove: _onCameraMove,
+            onCameraIdle: _onCameraIdle,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+            },
+          ),
+          Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    // Show animated circle when map is not moving
+                    return Visibility(
+                      visible: !isMapMoving,
+                      child: Container(
+                        width: _animation.value * 100,
+                        height: _animation.value * 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _colorAnimation.value,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const Icon(
+                  Icons.location_pin,
+                  size: 40,
+                  color: Colors.red,
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 10,
+            left: 15,
+            right: 15,
             child: Row(
               children: [
                 Expanded(
-                  // child: TextFormField(
-                  //   controller: __searchController,
-                  //   textCapitalization: TextCapitalization.words,
-                  //   decoration: const InputDecoration(
-                  //     hintText: "Search",
-                  //   ),
-                  // ),
                   child: TextField(
                     controller: _searchController,
                     onChanged: _searchPlaces,
@@ -151,64 +204,137 @@ class _MapSampleState extends State<MapSample> {
                             )
                           : null,
                       contentPadding: const EdgeInsets.only(top: 12.0),
-                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.green,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
                     textAlignVertical: TextAlignVertical.top,
                   ),
                 ),
-                // IconButton(
-                //   onPressed: () {
-                //     // Handle search action
-                //   },
-                //   icon: const Icon(Icons.search),
-                // )
               ],
-            ),
-          ),
-          Expanded(
-            child: GoogleMap(
-              mapType: MapType.hybrid,
-              // markers: {_kGooglePlexMarker(), _klakeMarker},
-              onTap: _onMapTap,
-              // polygons: {_kPolygon},
-              initialCameraPosition: _kGooglePlex,
-              markers: <Marker>{_kGooglePlexMarker()},
-              // circles: <Circle>{_kGooglePlexCircle()},
-              // polygons: <Polygon>{_kGooglePlexPolygon},
-              // polylines: <Polyline>{_kPolyline},
-              // myLocationEnabled: true,
-              // myLocationButtonEnabled: true,
-              // zoomControlsEnabled: true,
-              // zoomGesturesEnabled: true,
-              // scrollGesturesEnabled: true,
-              // tiltGesturesEnabled: true,
-              // rotateGesturesEnabled: true,
-              // mapToolbarEnabled: true,
-              // onLongPress: (latLng) {
-              //   _onMapTap(latLng);
-              // }
-
-              onMapCreated: (GoogleMapController controller) {
-                _controller.complete(controller);
-              },
             ),
           ),
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: TextButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapDetails(
-                  latitude: latValue,
-                  longitude: longValue,
+      bottomNavigationBar: Container(
+        height: MediaQuery.of(context).size.height * 0.22,
+        width: double.infinity,
+        color: Colors.blueGrey[50],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Row(
+                children: [
+                  Text(
+                    "DELIVERY ADDRESS",
+                    style: TextStyle(color: Colors.blueAccent),
+                  )
+                ],
+              ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(Icons.map, color: Colors.blue),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: subLocality.isNotEmpty
+                          ? [
+                              Text(
+                                subLocality,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                locality,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ]
+                          : [
+                              Text(
+                                locality,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Change'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Text('Latitude: $latValue'),
+            // Text('Longitude: $longValue'),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MapDetails(
+                        latitude: latValue,
+                        longitude: longValue,
+                      ),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                ),
+                child: const SizedBox(
+                  width: double.infinity,
+                  child: Center(
+                    child: Text(
+                      'Next',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ),
                 ),
               ),
-            );
-          },
-          child: const Text('Next'),
+            ),
+          ],
         ),
       ),
     );

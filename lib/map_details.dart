@@ -35,23 +35,18 @@ class _MapDetailsState extends State<MapDetails> {
   }
 
   void _getAddressDetails() async {
-    if (widget.latitude != null && widget.longitude != null) {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(widget.latitude, widget.longitude);
-      print("Placemarks Details: $placemarks");
-      Placemark place = placemarks[0];
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(widget.latitude, widget.longitude);
+    Placemark place = placemarks[0];
 
-      setState(() {
-        houseController.text = place.subThoroughfare ?? '';
-        areaController.text = place.thoroughfare ?? '';
-        pinCodeController.text = place.postalCode ?? '';
-        landmarkController.text = place.subLocality ?? '';
-        locality = place.locality ?? '';
-        subLocality = place.subLocality ?? '';
-      });
-    } else {
-      print('Latitude or longitude is null. Unable to initialize data.');
-    }
+    setState(() {
+      houseController.text = place.subThoroughfare ?? '';
+      areaController.text = place.thoroughfare ?? '';
+      pinCodeController.text = place.postalCode ?? '';
+      landmarkController.text = place.subLocality ?? '';
+      locality = place.locality ?? '';
+      subLocality = place.subLocality ?? '';
+    });
   }
 
   @override
