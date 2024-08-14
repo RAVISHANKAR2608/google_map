@@ -18,6 +18,8 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
   double latValue = 11.380333491395136;
   double longValue = 77.89550084620714;
   bool isMapMoving = false;
+  String subLocality = "";
+  String locality = "";
 
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -86,6 +88,11 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
         await placemarkFromCoordinates(latValue, longValue);
     // print("Placemarks: $placemarks");
     Placemark place = placemarks[0];
+
+    setState(() {
+      locality = place.locality ?? '';
+      subLocality = place.subLocality ?? '';
+    });
 
     // String address =
     //     "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
@@ -223,27 +230,109 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
         ],
       ),
       bottomNavigationBar: Container(
-        height: MediaQuery.of(context).size.height * 0.2,
+        height: MediaQuery.of(context).size.height * 0.22,
         width: double.infinity,
         color: Colors.blueGrey[50],
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Latitude: $latValue'),
-            Text('Longitude: $longValue'),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MapDetails(
-                      latitude: latValue,
-                      longitude: longValue,
+            const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Row(
+                children: [
+                  Text(
+                    "DELIVERY ADDRESS",
+                    style: TextStyle(color: Colors.blueAccent),
+                  )
+                ],
+              ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(Icons.map, color: Colors.blue),
                     ),
                   ),
-                );
-              },
-              child: const Text('Next'),
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: subLocality.isNotEmpty
+                          ? [
+                              Text(
+                                subLocality,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                locality,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ]
+                          : [
+                              Text(
+                                locality,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Change'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Text('Latitude: $latValue'),
+            // Text('Longitude: $longValue'),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MapDetails(
+                        latitude: latValue,
+                        longitude: longValue,
+                      ),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                ),
+                child: const SizedBox(
+                  width: double.infinity,
+                  child: Center(
+                    child: Text(
+                      'Next',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
