@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       routes: <String, WidgetBuilder>{
         '/map': (BuildContext context) => const MapSample(),
       },
-      home: const HomePage(), // Define a home page or a default route
+      home: const HomePage(),
     );
   }
 }
@@ -41,4 +41,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:google_map/map_details.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapSample extends StatefulWidget {
@@ -13,7 +14,7 @@ class MapSample extends StatefulWidget {
 class _MapSampleState extends State<MapSample> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
-  final TextEditingController __searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   double latValue = 11.3753926;
   double longValue = 77.8938889;
 
@@ -43,6 +44,26 @@ class _MapSampleState extends State<MapSample> {
     );
   }
 
+    Future<void> _searchPlaces(String query) async {
+    List<Location> locations = await locationFromAddress(query);
+
+    if (locations.isNotEmpty) {
+      Location location = locations.first;
+      setState(() {
+        latValue = location.latitude!;
+        longValue = location.longitude!;
+      });
+
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(latValue, longValue),
+          zoom: 14.0,
+        ),
+      ));
+    }
+  }
+
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(11.380008, 77.8953203),
     zoom: 14.4746,
@@ -54,6 +75,18 @@ class _MapSampleState extends State<MapSample> {
       infoWindow: const InfoWindow(title: 'Ravi'),
       icon: BitmapDescriptor.defaultMarker,
       position: LatLng(latValue, longValue),
+    );
+  }
+
+  Circle _kGooglePlexCircle() {
+    return Circle(
+      circleId: const CircleId('_kGooglePlexCircle'),
+      center: LatLng(latValue, longValue), // Center of the circle
+      radius: 1000, // Radius in meters
+      strokeWidth: 2, // Width of the circle's outline
+      strokeColor: Colors.blue, // Color of the circle's outline
+      fillColor: Colors.blue
+          .withOpacity(0.5), // Fill color of the circle with transparency
     );
   }
 
@@ -90,30 +123,71 @@ class _MapSampleState extends State<MapSample> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: __searchController,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      hintText: "Search",
+                  // child: TextFormField(
+                  //   controller: __searchController,
+                  //   textCapitalization: TextCapitalization.words,
+                  //   decoration: const InputDecoration(
+                  //     hintText: "Search",
+                  //   ),
+                  // ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _searchPlaces,
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      hintStyle: const TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.grey,
+                      ),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.cancel_outlined,
+                                  color: Color(0xFF6D6A72)),
+                              onPressed: () {
+                                _searchController.clear();
+                                _searchPlaces('');
+                              },
+                            )
+                          : null,
+                      contentPadding: const EdgeInsets.only(top: 12.0),
+                      border: InputBorder.none,
                     ),
+                    textAlignVertical: TextAlignVertical.top,
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    // Handle search action
-                  },
-                  icon: const Icon(Icons.search),
-                )
+                // IconButton(
+                //   onPressed: () {
+                //     // Handle search action
+                //   },
+                //   icon: const Icon(Icons.search),
+                // )
               ],
             ),
           ),
           Expanded(
             child: GoogleMap(
               mapType: MapType.hybrid,
-              markers: {_kGooglePlexMarker(), _klakeMarker},
+              // markers: {_kGooglePlexMarker(), _klakeMarker},
               onTap: _onMapTap,
               // polygons: {_kPolygon},
               initialCameraPosition: _kGooglePlex,
+              markers: <Marker>{_kGooglePlexMarker()},
+              // circles: <Circle>{_kGooglePlexCircle()},
+              // polygons: <Polygon>{_kGooglePlexPolygon},
+              // polylines: <Polyline>{_kPolyline},
+              // myLocationEnabled: true,
+              // myLocationButtonEnabled: true,
+              // zoomControlsEnabled: true,
+              // zoomGesturesEnabled: true,
+              // scrollGesturesEnabled: true,
+              // tiltGesturesEnabled: true,
+              // rotateGesturesEnabled: true,
+              // mapToolbarEnabled: true,
+              // onLongPress: (latLng) {
+              //   _onMapTap(latLng);
+              // }
+
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
@@ -124,8 +198,15 @@ class _MapSampleState extends State<MapSample> {
       bottomNavigationBar: BottomAppBar(
         child: TextButton(
           onPressed: () {
-            // Handle button press action here
-            print('TextButton pressed');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MapDetails(
+                  latitude: latValue,
+                  longitude: longValue,
+                ),
+              ),
+            );
           },
           child: const Text('Next'),
         ),
