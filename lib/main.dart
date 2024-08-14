@@ -114,7 +114,14 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-      body: const Center(),
+     body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed('/map');
+          },
+          child: const Text('View Map'),
+        ),
+      ),
     );
   }
 
@@ -152,7 +159,7 @@ class HomePage extends StatelessWidget {
                           size: 30,
                           // weight: 20,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Text(
