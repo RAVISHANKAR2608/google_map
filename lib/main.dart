@@ -30,6 +30,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: GestureDetector(
@@ -62,7 +63,7 @@ class HomePage extends StatelessWidget {
                 size: 28,
                 color: Color.fromARGB(255, 255, 128, 0),
               ),
-              SizedBox(
+              const SizedBox(
                 width: 2,
               ),
               Column(
@@ -115,7 +116,9 @@ class HomePage extends StatelessWidget {
         ],
       ),
      body: Center(
+      
         child: ElevatedButton(
+
           onPressed: () {
             Navigator.of(context).pushNamed('/map');
           },
@@ -127,7 +130,8 @@ class HomePage extends StatelessWidget {
 
   void _showModalBottomSheet(BuildContext context) {
     showModalBottomSheet<void>(
-      shape: RoundedRectangleBorder(
+      
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(5.0),
           topRight: Radius.circular(5.0),
@@ -137,11 +141,14 @@ class HomePage extends StatelessWidget {
       isScrollControlled: true,
       context: context,
       builder: (BuildContext context) {
+        
         return Scaffold(
+          
           body: Column(
           children: [
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05,),
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(15.0),
               child: Column(
                 children: [
                   GestureDetector(
@@ -360,35 +367,64 @@ class HomePage extends StatelessWidget {
                   const SizedBox(
                     height: 15,
                   ),
-                  // ListView.builder(
-                  //   itemCount: 1,
-                  //   itemBuilder: (BuildContext context, int index) {
-                  //     return 
-                  //     Container(
-                  //       child: const Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Row(
-                  //           children: [
-                  //             Column(
-                  //               children: [
-                  //                 Icon(Icons.access_time),
-                  //                 Text("0 m"),
-                  //               ],
-                  //             ),
-                  //             SizedBox(width: 10,),
-                  //             Column(
-                  //               crossAxisAlignment: CrossAxisAlignment.start,
-                  //               children: [Text("Kamalar"), Text("Truchengode")],
-                  //             )
-                  //           ],
-                  //         ),
-                  //         Divider(),
-                  //       ],
-                  //                         ),
-                  //     );
-                  //   },
-                  // )
+
+                  Container(
+                    height: 200,
+                    // color: Colors.amber,
+                    child: ListView.builder(
+                      itemCount: 1,
+                      itemBuilder: (BuildContext context, index) { 
+                        return 
+                        const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Column(
+                                  children: [
+                                    Icon(Icons.access_time, size: 20, color: Color.fromARGB(255, 158, 157, 156),),
+                                    SizedBox(height: 5,),
+                                    Text("0 m"),
+                                  ],
+                                ),
+                                SizedBox(width: 10,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [Text("Kamalar"), 
+                                                                      SizedBox(height: 5,),
+
+                                  Text("Truchengode")],
+                                )
+                              ],
+                            ),
+                            Divider(),
+                            Row(
+                              children: [
+                                Column(
+                                  children: [
+                                    Icon(Icons.access_time, size: 20, color: Color.fromARGB(255, 158, 157, 156),),
+                                    SizedBox(height: 5,),
+                                    Text("0 m"),
+                                  ],
+                                ),
+                                SizedBox(width: 10,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [Text("Kamalar"), 
+                                                                      SizedBox(height: 5,),
+
+                                  Text("Truchengode")],
+                                )
+                              ],
+                            ),
+                          ],
+                                            ),
+                        );
+                      },
+                    ),
+                  )
                 ],
               ),
             ),
@@ -401,8 +437,8 @@ class HomePage extends StatelessWidget {
 }
 
 Widget buildDashedLined(BuildContext context) {
-  // double screenWidth = MediaQuery.of(context).size.width;
-  // double lineLength = screenWidth * 0.26; // Adjust this factor as needed
+  double screenWidth = MediaQuery.of(context).size.width;
+  double lineLength = screenWidth * 0.25; // Adjust this factor as needed
 
   return Center(
     child: DottedLine(
@@ -411,8 +447,7 @@ Widget buildDashedLined(BuildContext context) {
       dashGapLength: 0,
       lineThickness: 1,
       dashLength: 4,
-      lineLength: 86,
-      // lineLength: lineLength,
+      lineLength: lineLength,
     ),
   );
 }
