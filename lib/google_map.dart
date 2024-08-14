@@ -104,8 +104,8 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
     if (locations.isNotEmpty) {
       Location location = locations.first;
       setState(() {
-        latValue = location.latitude!;
-        longValue = location.longitude!;
+        latValue = location.latitude;
+        longValue = location.longitude;
       });
 
       final GoogleMapController controller = await _controller.future;
