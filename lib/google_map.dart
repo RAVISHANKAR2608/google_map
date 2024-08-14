@@ -21,6 +21,7 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
 
   late AnimationController _animationController;
   late Animation<double> _animation;
+  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
@@ -43,6 +44,11 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
 
     _animation =
         Tween<double>(begin: 0.0, end: 1.5).animate(_animationController);
+
+    _colorAnimation = ColorTween(
+      begin: Colors.blue.withOpacity(1.0),
+      end: Colors.blue.withOpacity(0.0),
+    ).animate(_animationController);
   }
 
   void _startAnimation() {
@@ -149,7 +155,7 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
                         height: _animation.value * 100,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.blue.withOpacity(0.5),
+                          color: _colorAnimation.value,
                         ),
                       ),
                     );
