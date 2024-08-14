@@ -15,8 +15,8 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
   final TextEditingController _searchController = TextEditingController();
-  double latValue = 11.3753926;
-  double longValue = 77.8938889;
+  double latValue = 11.380333491395136;
+  double longValue = 77.89550084620714;
   bool isMapMoving = false;
 
   late AnimationController _animationController;
@@ -84,18 +84,18 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
 
     List<Placemark> placemarks =
         await placemarkFromCoordinates(latValue, longValue);
-    print("Placemarks: $placemarks");
+    // print("Placemarks: $placemarks");
     Placemark place = placemarks[0];
 
-    String address =
-        "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
-    print("Address: $address");
+    // String address =
+    //     "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+    // print("Address: $address");
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Address: $address")),
-      );
-    }
+    // if (mounted) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text("Address: $address")),
+    //   );
+    // }
   }
 
   Future<void> _searchPlaces(String query) async {
@@ -222,20 +222,30 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
           ),
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: TextButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapDetails(
-                  latitude: latValue,
-                  longitude: longValue,
-                ),
-              ),
-            );
-          },
-          child: const Text('Next'),
+      bottomNavigationBar: Container(
+        height: MediaQuery.of(context).size.height * 0.2,
+        width: double.infinity,
+        color: Colors.blueGrey[50],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Latitude: $latValue'),
+            Text('Longitude: $longValue'),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapDetails(
+                      latitude: latValue,
+                      longitude: longValue,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Next'),
+            ),
+          ],
         ),
       ),
     );
