@@ -47,7 +47,7 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
 
     _colorAnimation = ColorTween(
       begin: Colors.blue.withOpacity(1.0),
-      end: Colors.blue.withOpacity(0.0),
+      end: Colors.blue.withOpacity(0.1),
     ).animate(_animationController);
   }
 
