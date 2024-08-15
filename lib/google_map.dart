@@ -325,37 +325,29 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
                     flex: 1,
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Icon(Icons.location_pin, color: Colors.red, size: 28,),
+                      child: Icon(
+                        Icons.location_pin,
+                        color: Colors.deepOrange,
+                        size: 28,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 6,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: subLocality.isNotEmpty
-                          ? [
-                              Text(
-                                subLocality,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                locality,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ]
-                          : [
-                              Text(
-                                locality,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                    ),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            subLocality.isNotEmpty ? subLocality : locality,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            locality,
+                            style: const TextStyle(fontWeight: FontWeight.w400),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ]),
                   ),
                   Expanded(
                     flex: 2,
@@ -410,3 +402,4 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
     );
   }
 }
+
