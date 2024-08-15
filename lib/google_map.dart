@@ -18,6 +18,8 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
   double latValue = 11.380333491395136;
   double longValue = 77.89550084620714;
   bool isMapMoving = false;
+  bool isLocationInfo = true;
+  bool isMapLoading = true;
   String subLocality = "";
   String locality = "";
 
@@ -45,7 +47,7 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
     )..repeat(reverse: false);
 
     _animation =
-        Tween<double>(begin: 0.0, end: 1.5).animate(_animationController);
+        Tween<double>(begin: 0.0, end: 2.0).animate(_animationController);
 
     _colorAnimation = ColorTween(
       begin: Colors.blue.withOpacity(1.0),
@@ -143,8 +145,25 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
             initialCameraPosition: _kGooglePlex,
             onCameraMove: _onCameraMove,
             onCameraIdle: _onCameraIdle,
-            onMapCreated: (GoogleMapController controller) {
+            onMapCreated: (GoogleMapController controller) async {
               _controller.complete(controller);
+              await Future.delayed(const Duration(seconds: 2));
+              controller
+                  .showMarkerInfoWindow(const MarkerId('currentLocation'));
+              controller.takeSnapshot();
+
+              setState(() {
+                isMapLoading = false;
+              });
+            },
+            markers: {
+              Marker(
+                markerId: const MarkerId('currentLocation'),
+                position: LatLng(latValue, longValue),
+                infoWindow: !isLocationInfo
+                    ? InfoWindow.noText
+                    : const InfoWindow(title: 'Your Location'),
+              ),
             },
           ),
           Center(
@@ -156,7 +175,7 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
                   builder: (context, child) {
                     // Show animated circle when map is not moving
                     return Visibility(
-                      visible: !isMapMoving,
+                      visible: !isMapLoading && !isMapMoving,
                       child: Container(
                         width: _animation.value * 100,
                         height: _animation.value * 100,
@@ -168,11 +187,11 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                const Icon(
-                  Icons.location_pin,
-                  size: 40,
-                  color: Colors.red,
-                ),
+                // const Icon(
+                //   Icons.location_pin,
+                //   size: 40,
+                //   color: Colors.red,
+                // ),
               ],
             ),
           ),
@@ -227,6 +246,55 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
               ],
             ),
           ),
+          Positioned(
+            bottom: 16.0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: const Color.fromARGB(255, 36, 3, 82),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  // padding: const EdgeInsets.all(16.0),
+                  // elevation: 5.0,
+                  // textStyle: const TextStyle(fontSize: 16.0),
+                  // minimumSize: const Size.fromHeight(30.0),
+                  // maximumSize: const Size.fromHeight(48.0),
+                  // tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shadowColor: Colors.transparent,
+                  // side: const BorderSide(color: Colors.black),
+                  // backgroundColor: Colors.white,
+                  // foregroundColor: Colors.black,
+                ),
+                onPressed: () async {
+                  final GoogleMapController controller =
+                      await _controller.future;
+                  controller.animateCamera(CameraUpdate.newCameraPosition(
+                    CameraPosition(
+                      target: LatLng(latValue, longValue),
+                      zoom: 14.0,
+                    ),
+                  ));
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.my_location,
+                      color: Color.fromARGB(255, 36, 3, 82),
+                      size: 18,
+                    ),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text('Current Location'),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: Container(
@@ -257,11 +325,11 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
                     flex: 1,
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Icon(Icons.map, color: Colors.blue),
+                      child: Icon(Icons.location_pin, color: Colors.red, size: 28,),
                     ),
                   ),
                   Expanded(
-                    flex: 4,
+                    flex: 6,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: subLocality.isNotEmpty
@@ -274,6 +342,8 @@ class _MapSampleState extends State<MapSample> with TickerProviderStateMixin {
                               ),
                               Text(
                                 locality,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w500),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ]
